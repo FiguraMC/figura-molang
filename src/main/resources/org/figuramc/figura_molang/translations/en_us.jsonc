@@ -1,0 +1,31 @@
+{
+  // Header placed before any error. Then mentions a reason.
+  "figura_molang.error.compile": "Molang snippet failed to compile. \nReason: %s",
+  // Error reasons
+  "figura_molang.error.compile.return_outside_block": "\"return\" must be inside a {} block",
+  "figura_molang.error.compile.temp_var_outside_block": "Attempt to declare temp variable \"%s\" outside of a {} block",
+  "figura_molang.error.compile.diff_return_sizes": "Attempted to return 2 different sizes of value from the same block: %s and %s",
+  "figura_molang.error.compile.expected_expression": "Expected an expression",
+  "figura_molang.error.compile.number_parse": "Failed to parse number",
+  "figura_molang.error.compile.unknown_math": "Unrecognized math function \"%s\"",
+  "figura_molang.error.compile.expected_temp_var": "Expected \"t.varname\" or \"temp.varname\" after \"t\"",
+  "figura_molang.error.compile.nonexistent_temp_var": "No temp variable named \"%s\"",
+  "figura_molang.error.compile.expected_actor_var": "Expected \"v.varname\" or \"variable.varname\" after \"v\"",
+  "figura_molang.error.compile.var_size_too_low": "Vector variables, like \"v.3.varname\", must have size at least 2",
+  "figura_molang.error.compile.expect_dollar_after_var_size": "Expected \"$\" after variable size indicator \"%s\"",
+  "figura_molang.error.compile.expected_query": "Expected \"q.queryname\" or \"query.queryname\" after \"q\"",
+  "figura_molang.error.compile.unknown_query": "Unrecognized query \"%s\"",
+  "figura_molang.error.compile.expected_close_paren": "Expected \")\" to close previous \"(\"",
+  "figura_molang.error.compile.expected_ternary_colon": "Expected \":\" to finish ternary with previous \"?\"",
+  "figura_molang.error.compile.expected_name": "Expected name after \".\"",
+  "figura_molang.error.compile.expected_list": "Expected \"%s\" or \"%s\" to continue or end list, respectively",
+  "figura_molang.error.compile.logical_and_expects_scalars": "Logical \"and\" operator (&&) requires non-vector arguments",
+  "figura_molang.error.compile.logical_or_expects_scalars": "Logical \"or\" operator (||) requires non-vector arguments",
+  "figura_molang.error.compile.ternary_condition_expects_scalar": "Ternary condition (?) must not be a vector",
+  "figura_molang.error.compile.ternary_branches_must_be_same_size": "Branches of a ternary (a ? b : c) must be the same size, but got %s and %s",
+  "figura_molang.error.compile.incompatible_var_size": "Variable \"%s\" has size %s, but you attempt to assign %s values to it",
+  "figura_molang.error.compile.vector_constructor_expects_two_args": "A vector constructor must have at least 2 args passed to it",
+  "figura_molang.error.compile.wrong_arg_count": "Function \"%s\" expects %s args, but received %s",
+  "figura_molang.error.compile.vector_args_same_size": "All vector args to function \"%s\" must have the same size, but got vectors of size %s and %s",
+  "figura_molang.error.compile.scalar_args_only": "Function \"%s\" expects only scalar args"
+}
