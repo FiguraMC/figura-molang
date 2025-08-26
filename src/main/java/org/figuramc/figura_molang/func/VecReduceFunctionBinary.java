@@ -77,7 +77,7 @@ public record VecReduceFunctionBinary(String name, float initial, Consumer<Metho
         BytecodeUtil.repeatNTimes(visitor, Math.max(a.returnCount(), b.returnCount()), counterLocal, v -> {
             // Load A
             if (a.isVector()) {
-                v.visitVarInsn(Opcodes.ALOAD, 1); // [temp]
+                v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp]
                 BytecodeUtil.constInt(v, aIdx); // [temp, aIdx]
                 v.visitVarInsn(Opcodes.ILOAD, counterLocal); // [temp, aIdx, counter]
                 v.visitInsn(Opcodes.IADD); // [temp, aIdx + counter]
@@ -87,7 +87,7 @@ public record VecReduceFunctionBinary(String name, float initial, Consumer<Metho
             }
             // Load B
             if (b.isVector()) {
-                v.visitVarInsn(Opcodes.ALOAD, 1); // [temp[aIdx + counter], temp]
+                v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp[aIdx + counter], temp]
                 BytecodeUtil.constInt(v, bIdx); // [temp[aIdx + counter], temp, bIdx]
                 v.visitVarInsn(Opcodes.ILOAD, counterLocal); // [temp[aIdx + counter], temp, bIdx, counter]
                 v.visitInsn(Opcodes.IADD); // [temp[aIdx + counter], temp, bIdx + counter]
@@ -114,7 +114,7 @@ public record VecReduceFunctionBinary(String name, float initial, Consumer<Metho
 
     private static int store(MolangExpr expr, MethodVisitor visitor, CompilationContext context) {
         if (expr instanceof TempVariable temp) {
-            return temp.getRealLocation();
+            return temp.getRealLocation(context);
         } else if (!expr.isVector()) {
             int idx = context.reserveLocals(1);
             expr.compile(visitor, -1, context);

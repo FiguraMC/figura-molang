@@ -9,9 +9,9 @@ import java.util.List;
 
 public class VectorConstructor extends MolangExpr {
 
-    private final List<MolangExpr> exprs;
+    private final List<? extends MolangExpr> exprs;
 
-    public VectorConstructor(List<MolangExpr> exprs) {
+    public VectorConstructor(List<? extends MolangExpr> exprs) {
         this.exprs = exprs;
         if (exprs.size() <= 1) throw new IllegalStateException("Vector constructor expects at least 2 args - this should have already been checked!");
     }
@@ -26,7 +26,7 @@ public class VectorConstructor extends MolangExpr {
         int i = outputArrayIndex;
         for (var expr : exprs) {
             if (expr.returnCount() == 1) {
-                visitor.visitVarInsn(Opcodes.ALOAD, 1); // Load the array
+                visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // Load the array
                 BytecodeUtil.constInt(visitor, i);
                 expr.compile(visitor, i, context);
                 visitor.visitInsn(Opcodes.FASTORE);

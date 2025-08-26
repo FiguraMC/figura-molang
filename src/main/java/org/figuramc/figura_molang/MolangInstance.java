@@ -124,12 +124,15 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
     private final CustomClassLoader loader = new CustomClassLoader(this.getClass().getClassLoader());
 
     // Parse the source and compile into java bytecode, creating a CompiledMolang
-    public CompiledMolang<Actor> compile(String source) throws OOMErr, MolangCompileException {
+    public CompiledMolang<Actor> compile(String source, List<String> contextVariables, Map<String, float[]> constants) throws OOMErr, MolangCompileException {
+        int argCount = contextVariables.size();
+        if (argCount > 8) throw new IllegalArgumentException("Must have at most 8 context variables");
 
         // Parse:
-        MolangParser<OOMErr> parser = new MolangParser<>(source, this);
+        MolangParser<OOMErr> parser = new MolangParser<>(source, this, contextVariables, constants);
         MolangExpr expr = parser.parseAll();
-        int firstUnusedLocal = 2 + parser.getMaxLocalVariables();
+        int arrayVariableIndex = argCount + 1;
+        int firstUnusedLocal = arrayVariableIndex + 1 + parser.getMaxLocalVariables();
 
         try {
             // Compile to bytecode:
@@ -140,18 +143,20 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
             classWriter.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name, null, Type.getInternalName(CompiledMolang.class), null);
 
             // Constructor
-            MethodVisitor constructor = classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + Type.getDescriptor(MolangInstance.class) + "I)V", null, null);
+            MethodVisitor constructor = classWriter.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "(" + Type.getDescriptor(MolangInstance.class) + "II)V", null, null);
             constructor.visitCode();
             constructor.visitVarInsn(Opcodes.ALOAD, 0);
             constructor.visitVarInsn(Opcodes.ALOAD, 1);
             constructor.visitVarInsn(Opcodes.ILOAD, 2);
-            constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(CompiledMolang.class), "<init>", "(" + Type.getDescriptor(MolangInstance.class) + "I)V", false);
+            constructor.visitVarInsn(Opcodes.ILOAD, 3);
+            constructor.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(CompiledMolang.class), "<init>", "(" + Type.getDescriptor(MolangInstance.class) + "II)V", false);
             constructor.visitInsn(Opcodes.RETURN);
             constructor.visitMaxs(0, 0);
             constructor.visitEnd();
 
-            // evaluate method
-            MethodVisitor evaluateMethod = classWriter.visitMethod(Opcodes.ACC_PROTECTED, "evaluateImpl", "()[F", null, null);
+            // evaluateImpl method, with the appropriate arg count
+            String evaluateImplDesc = "(" + "F".repeat(argCount) + ")[F";
+            MethodVisitor evaluateMethod = classWriter.visitMethod(Opcodes.ACC_PROTECTED, "evaluateImpl", evaluateImplDesc, null, null);
             evaluateMethod.visitCode();
 
             // Cursed garbage required for re-entrancy support, plus our compiler is bad so it doesn't know how much space
@@ -165,10 +170,10 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
             evaluateMethod.visitLabel(runCode);
             // Run code, then jump to end
             if (expr.returnCount() == 1) {
-                evaluateMethod.visitVarInsn(Opcodes.ALOAD, 1);
+                evaluateMethod.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
                 BytecodeUtil.constInt(evaluateMethod, 0);
             }
-            CompilationContext ctx = new CompilationContext(firstUnusedLocal, 0);
+            CompilationContext ctx = new CompilationContext(arrayVariableIndex, firstUnusedLocal, 0);
             expr.compile(evaluateMethod, 0, ctx);
             if (expr.returnCount() == 1) {
                 evaluateMethod.visitInsn(Opcodes.FASTORE);
@@ -180,14 +185,14 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
             evaluateMethod.visitFieldInsn(Opcodes.GETFIELD, Type.getInternalName(CompiledMolang.class), "instance", Type.getDescriptor(MolangInstance.class));
             BytecodeUtil.constInt(evaluateMethod, ctx.getMaxArraySlots());
             evaluateMethod.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(MolangInstance.class), "getTempStack", "(I)[F", false);
-            evaluateMethod.visitVarInsn(Opcodes.ASTORE, 1);
+            evaluateMethod.visitVarInsn(Opcodes.ASTORE, arrayVariableIndex);
             // Run the code now
             evaluateMethod.visitJumpInsn(Opcodes.GOTO, runCode);
             // End
             evaluateMethod.visitLabel(end);
 
             // Return the float array
-            evaluateMethod.visitVarInsn(Opcodes.ALOAD, 1);
+            evaluateMethod.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
             evaluateMethod.visitInsn(Opcodes.ARETURN);
             evaluateMethod.visitMaxs(0, 0);
             evaluateMethod.visitEnd();
@@ -207,7 +212,7 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
             if (allocState != null) allocState.changeSize(classBytes.length * 4);
 
             Class<? extends CompiledMolang> clazz = loader.create(name, classBytes);
-            return clazz.getDeclaredConstructor(MolangInstance.class, int.class).newInstance(this, expr.returnCount());
+            return clazz.getDeclaredConstructor(MolangInstance.class, int.class, int.class).newInstance(this, argCount, expr.returnCount());
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to compile molang", ex);
         }

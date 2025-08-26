@@ -6,23 +6,19 @@ import org.figuramc.figura_molang.ast.Literal;
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.VectorConstructor;
 import org.figuramc.figura_molang.ast.control_flow.*;
-import org.figuramc.figura_molang.ast.vars.ActorVariable;
-import org.figuramc.figura_molang.ast.vars.ActorVariableAssign;
-import org.figuramc.figura_molang.ast.vars.TempVariable;
-import org.figuramc.figura_molang.ast.vars.TempVariableAssign;
+import org.figuramc.figura_molang.ast.vars.*;
 import org.figuramc.figura_molang.func.ComparisonOperator;
 import org.figuramc.figura_molang.func.FloatFunction;
 import org.figuramc.figura_molang.func.MolangFunction;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Stack;
+import java.util.*;
 
 public class MolangParser<OOMErr extends Throwable> {
 
     private final String source;
     private final MolangInstance<?, OOMErr> instance;
+    public final List<String> contextVariables;
+    public final Map<String, float[]> constants;
     private int current;
 
     private final Stack<Compound> scopes = new Stack<>();
@@ -30,9 +26,11 @@ public class MolangParser<OOMErr extends Throwable> {
 
     // Only a MolangInstance should ever construct one of these.
     // Please don't try to use this class on your own.
-    public MolangParser(String source, MolangInstance<?, OOMErr> instance) {
+    public MolangParser(String source, MolangInstance<?, OOMErr> instance, List<String> contextVariables, Map<String, float[]> constants) {
         this.source = source;
         this.instance = instance;
+        this.contextVariables = contextVariables;
+        this.constants = constants;
         this.current = 0;
     }
     
@@ -165,7 +163,23 @@ public class MolangParser<OOMErr extends Throwable> {
     private MolangExpr parseAtom() throws OOMErr, MolangCompileException {
         if (consumeDigit(true)) return finishNumber();
         if (consume("math.", true)) return finishMath();
+        // Test constants
+        for (var constant : constants.entrySet()) {
+            if (consume(constant.getKey(), true)) {
+                return switch (constant.getValue().length) {
+                    case 0 -> throw new IllegalStateException("Constants must have at least 1 size");
+                    case 1 -> new Literal(constant.getValue()[0]);
+                    default -> {
+                        List<Literal> list = new ArrayList<>(constant.getValue().length);
+                        for (int i = 0; i < constant.getValue().length; i++)
+                            list.add(new Literal(constant.getValue()[i]));
+                        yield new VectorConstructor(list);
+                    }
+                };
+            }
+        }
         if (consume('q', true)) return finishQuery();
+        if (consume('c', true)) return finishContextVar();
         if (consume('t', true)) return finishTemp();
         if (consume('v', true)) return finishActorVar();
         if (consume('(', true)) return finishParen();
@@ -294,6 +308,17 @@ public class MolangParser<OOMErr extends Throwable> {
         MolangInstance.Query<?, OOMErr> query = instance.getQuery(queryName);
         if (query == null) throw new MolangCompileException(MolangCompileException.UNKNOWN_QUERY, queryName, source, start, current);
         return query.bind(this, parseParams(), source, start, afterFuncName);
+    }
+
+    // "c" was parsed
+    private MolangExpr finishContextVar() throws OOMErr, MolangCompileException {
+        int start = current - 1;
+        if (!(consume('.', false) || consume("ontext.", false)))
+            throw new MolangCompileException(MolangCompileException.EXPECTED_CONTEXT_VAR, source, start, current);
+        String contextVarName = expectIdent();
+        int varIndex = contextVariables.indexOf(contextVarName);
+        if (varIndex == -1) throw new MolangCompileException(MolangCompileException.UNKNOWN_CONTEXT_VAR, contextVarName, source, start, current);
+        return new ContextVariable(contextVarName, varIndex);
     }
 
     // ( was already consumed

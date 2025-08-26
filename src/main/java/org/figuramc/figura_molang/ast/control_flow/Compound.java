@@ -55,7 +55,7 @@ public class Compound extends MolangExpr {
         // If it didn't return, in which case it would jump past this, push 0s
         if (isVector()) {
             // Store 0s with Arrays.fill
-            visitor.visitVarInsn(Opcodes.ALOAD, 1);
+            visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex);
             BytecodeUtil.constInt(visitor, outputArrayIndex);
             BytecodeUtil.constInt(visitor, outputArrayIndex + returnCount());
             visitor.visitInsn(Opcodes.FCONST_0);

@@ -6,6 +6,9 @@ import java.util.Stack;
 
 public class CompilationContext {
 
+    // Index of the float[] variable used as temp stack space
+    public final int arrayVariableIndex;
+
     private final Stack<Integer> nextLocal = new Stack<>();
     private final Stack<Integer> nextArraySlot = new Stack<>();
 
@@ -14,13 +17,14 @@ public class CompilationContext {
 
     private int maxLocals, maxArraySlots;
 
-    public CompilationContext(int nextLocal, int nextArraySlot) {
-        this.nextLocal.push(nextLocal);
-        this.nextArraySlot.push(nextArraySlot);
+    public CompilationContext(int arrayVariableIndex, int firstUnusedLocal, int firstUnusedArraySlot) {
+        this.arrayVariableIndex = arrayVariableIndex;
+        this.nextLocal.push(firstUnusedLocal);
+        this.nextArraySlot.push(firstUnusedArraySlot);
         this.returnLabel.push(null);
         this.returnArraySlot.push(null);
-        maxLocals = nextLocal;
-        maxArraySlots = Math.max(nextArraySlot, 1);
+        maxLocals = firstUnusedLocal;
+        maxArraySlots = Math.max(firstUnusedArraySlot, 1);
     }
 
     public void push() {

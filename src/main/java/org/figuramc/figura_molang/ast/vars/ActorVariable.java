@@ -41,7 +41,7 @@ public class ActorVariable extends MolangExpr {
         if (isVector()) {
             // Copy from array into outputArrayIndex
             BytecodeUtil.constInt(visitor, location); // [vars, src]
-            visitor.visitVarInsn(Opcodes.ALOAD, 1); // [vars, src, out]
+            visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [vars, src, out]
             BytecodeUtil.constInt(visitor, outputArrayIndex); // [vars, src, out, dst]
             BytecodeUtil.constInt(visitor, size); // [vars, src, out, dst, len]
             visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V", false); // []

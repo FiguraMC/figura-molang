@@ -72,7 +72,7 @@ public record ComparisonOperator(String name, BiConsumer<MethodVisitor, Label> t
         BytecodeUtil.repeatNTimes(visitor, a.returnCount(), counterLocal, v -> {
             // Load A
             if (a.isVector()) {
-                v.visitVarInsn(Opcodes.ALOAD, 1); // [temp]
+                v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp]
                 BytecodeUtil.constInt(v, aIdx); // [temp, aIdx]
                 v.visitVarInsn(Opcodes.ILOAD, counterLocal); // [temp, aIdx, counter]
                 v.visitInsn(Opcodes.IADD); // [temp, aIdx + counter]
@@ -83,7 +83,7 @@ public record ComparisonOperator(String name, BiConsumer<MethodVisitor, Label> t
             // Load B
             if (b.isVector()) {
                 // Load elem of B
-                v.visitVarInsn(Opcodes.ALOAD, 1); // [a, temp]
+                v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [a, temp]
                 BytecodeUtil.constInt(v, bIdx); // [a, temp, bIdx]
                 v.visitVarInsn(Opcodes.ILOAD, counterLocal); // [a, temp, bIdx, counter]
                 v.visitInsn(Opcodes.IADD); // [a, temp, bIdx + counter]
@@ -106,7 +106,7 @@ public record ComparisonOperator(String name, BiConsumer<MethodVisitor, Label> t
 
     private static int store(MolangExpr expr, MethodVisitor visitor, CompilationContext context) {
         if (expr instanceof TempVariable temp) {
-            return temp.getRealLocation();
+            return temp.getRealLocation(context);
         } else if (!expr.isVector()) {
             int idx = context.reserveLocals(1);
             expr.compile(visitor, -1, context);

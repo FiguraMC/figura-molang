@@ -30,11 +30,11 @@ public class TempVariableAssign extends MolangExpr {
         // Compile the expr, putting its result into the variable
         if (variable.isVector()) {
             // If vector, compile and place result there
-            rhs.compile(visitor, variable.getRealLocation(), context);
+            rhs.compile(visitor, variable.getRealLocation(context), context);
         } else {
             // If scalar, compile which pushes to stack, then store in local
             rhs.compile(visitor, outputArrayIndex, context);
-            visitor.visitVarInsn(Opcodes.FSTORE, variable.getRealLocation());
+            visitor.visitVarInsn(Opcodes.FSTORE, variable.getRealLocation(context));
         }
         // Push scalar 0 on the stack
         BytecodeUtil.constFloat(visitor, 0f);

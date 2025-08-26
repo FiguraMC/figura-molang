@@ -73,7 +73,7 @@ public record VecReduceFunction(String name, float initial, Consumer<MethodVisit
         int arrayLocation;
         // If already in temp variable,
         if (arg instanceof TempVariable tempVar) {
-            arrayLocation = tempVar.getRealLocation();
+            arrayLocation = tempVar.getRealLocation(context);
         } else {
             arrayLocation = context.reserveArraySlots(arg.returnCount());
             arg.compile(visitor, arrayLocation, context);
@@ -85,7 +85,7 @@ public record VecReduceFunction(String name, float initial, Consumer<MethodVisit
         visitor.visitVarInsn(Opcodes.FSTORE, accum);
         // Reduce all values from vec
         BytecodeUtil.repeatNTimes(visitor, arg.returnCount(), counterLocal, v -> {
-            v.visitVarInsn(Opcodes.ALOAD, 1); // [temp]
+            v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp]
             BytecodeUtil.constInt(v, arrayLocation); // [temp, varloc]
             v.visitVarInsn(Opcodes.ILOAD, counterLocal); // [temp, varloc, counter]
             v.visitInsn(Opcodes.IADD); // [temp, varloc + counter]

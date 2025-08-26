@@ -15,6 +15,8 @@
   "figura_molang.error.compile.expect_dollar_after_var_size": "Expected \"$\" after variable size indicator \"%s\"",
   "figura_molang.error.compile.expected_query": "Expected \"q.queryname\" or \"query.queryname\" after \"q\"",
   "figura_molang.error.compile.unknown_query": "Unrecognized query \"%s\"",
+  "figura_molang.error.compile.expected_context_var": "Expected \"c.varname\" or \"context.varname\" after \"c\"",
+  "figura_molang.error.compile.unknown_context_var": "Unrecognized context var \"%s\"",
   "figura_molang.error.compile.expected_close_paren": "Expected \")\" to close previous \"(\"",
   "figura_molang.error.compile.expected_ternary_colon": "Expected \":\" to finish ternary with previous \"?\"",
   "figura_molang.error.compile.expected_name": "Expected name after \".\"",

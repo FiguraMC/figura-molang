@@ -30,9 +30,9 @@ public class TempVariable extends MolangExpr {
         return location; // Location within compilation, ignoring offsets
     }
 
-    public int getRealLocation() {
+    public int getRealLocation(CompilationContext context) {
         // Offset for reserved space
-        return isVector() ? location : location + 2;
+        return isVector() ? location : location + context.arrayVariableIndex + 1;
     }
 
     // Not always required to run; some code can use it directly from its local variable/array location without a copy
@@ -40,17 +40,17 @@ public class TempVariable extends MolangExpr {
     public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
         if (isVector()) {
             // If variable is already at the right location, don't need to do anything!
-            if (outputArrayIndex == getRealLocation()) return;
+            if (outputArrayIndex == getRealLocation(context)) return;
             // Copy to the output location, use System.arraycopy()
-            BytecodeUtil.constInt(visitor, getRealLocation());
-            visitor.visitVarInsn(Opcodes.ALOAD, 1);
+            BytecodeUtil.constInt(visitor, getRealLocation(context));
+            visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex);
             visitor.visitInsn(Opcodes.DUP_X1);
             BytecodeUtil.constInt(visitor, outputArrayIndex);
             BytecodeUtil.constInt(visitor, size);
             visitor.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/System", "arraycopy", "(Ljava/lang/Object;ILjava/lang/Object;II)V", false);
         } else {
             // Load the local to the stack
-            visitor.visitVarInsn(Opcodes.FLOAD, getRealLocation());
+            visitor.visitVarInsn(Opcodes.FLOAD, getRealLocation(context));
         }
     }
 }

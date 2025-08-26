@@ -1,12 +1,17 @@
 package org.figuramc.figura_molang;
 
+import org.figuramc.figura_molang.ast.Literal;
 import org.figuramc.figura_molang.ast.MolangExpr;
+import org.figuramc.figura_molang.ast.VectorConstructor;
+import org.figuramc.figura_molang.ast.vars.ContextVariable;
 import org.figuramc.figura_molang.compile.CompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
 import org.figuramc.figura_molang.compile.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import java.util.ArrayList;
 
 /**
  * Class for creating custom queries on actors. They only accept scalars.
@@ -59,6 +64,41 @@ public class QueryFactory<Actor> {
                     }
                 }
             };
+        };
+    }
+
+    /**
+     * Create a query q.queryName that just wraps the context variable c.contextVarName.
+     * Useful when Molang spec indicates something should be a query (q.anim_time) but you determine it should
+     * be a context variable for performance reasons.
+     * If the context variable does not exist in this parser, the query will evaluate to 0.
+     */
+    public static MolangInstance.Query<Object, RuntimeException> fromContextVariable(String queryName, String contextVarName) {
+        return (parser, args, source, funcNameStart, funcNameEnd) -> {
+            // Verify there's no args
+            if (!args.isEmpty()) throw new MolangCompileException(MolangCompileException.WRONG_ARG_COUNT, queryName, String.valueOf(0), String.valueOf(args.size()), source, funcNameStart, funcNameEnd);
+            // Fetch the context var from the parser
+            int index = parser.contextVariables.indexOf(contextVarName);
+            if (index == -1) return new Literal(0f);
+            else return new ContextVariable(contextVarName, index);
+        };
+    }
+
+    public static MolangInstance.Query<Object, RuntimeException> fromConstant(String queryName, String constantName, int constantLen) {
+        return (parser, args, source, funcNameStart, funcNameEnd) -> {
+            // Verify there's no args
+            if (!args.isEmpty()) throw new MolangCompileException(MolangCompileException.WRONG_ARG_COUNT, queryName, String.valueOf(0), String.valueOf(args.size()), source, funcNameStart, funcNameEnd);
+            // Fetch the constant from the parser
+            float[] values = parser.constants.get(constantName);
+            if (values == null || values.length != constantLen) values = new float[constantLen];
+            if (values.length == 1) {
+                return new Literal(values[0]);
+            } else {
+                ArrayList<Literal> literals = new ArrayList<>(values.length);
+                for (int i = 0; i < values.length; i++)
+                    literals.add(new Literal(values[i]));
+                return new VectorConstructor(literals);
+            }
         };
     }
 

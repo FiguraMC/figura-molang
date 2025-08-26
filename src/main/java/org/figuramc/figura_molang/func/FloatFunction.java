@@ -7,6 +7,7 @@ import org.figuramc.figura_molang.compile.MolangCompileException;
 import org.figuramc.figura_molang.compile.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,8 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
     public static final FloatFunction EXP = math("math.exp", 1, "exp", true);
     public static final FloatFunction FLOOR = math("math.floor", 1, "floor", true);
     // Hermite blend
-    // Lerp
+    public static float lerp(float a, float b, float delta) { return Math.fma(delta, b - a, a); }
+    public static final FloatFunction LERP = custom("math.lerp", 3, "lerp");
     // Lerp rotate
     public static final FloatFunction LN = math("math.ln", 1, "log", true);
     public static final FloatFunction MAX = math("math.max", 2, "max", false);
@@ -73,9 +75,19 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
     }, false);
 
 
+    // Function calling java's Math.jvmName
     private static FloatFunction math(String  name, int argCount, String jvmName, boolean usesDouble) {
         return math(name, argCount, jvmName, usesDouble, false, false);
     }
+
+    // Call a function defined in here, accepting float args and returning float
+    private static FloatFunction custom(String name, int argCount, String jvmName) {
+        String desc = "(" + "F".repeat(argCount) + ")F";
+        return new FloatFunction(name, argCount, v -> {
+            v.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(FloatFunction.class), jvmName, desc, false);
+        }, false);
+    }
+
 
     // inputToRadians: Whether to convert the input to radians first (the function accepts radians, but molang spec uses degrees)
     // outputToDegrees: Whether to convert the output to degrees (the function returns radians, but molang spec uses degrees)
@@ -163,7 +175,7 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
             for (MolangExpr arg : args) {
                 if (arg instanceof TempVariable tempVar) {
                     // Already stored somewhere, use that location
-                    locations.add(tempVar.getRealLocation());
+                    locations.add(tempVar.getRealLocation(context));
                 } else if (arg.isVector()) {
                     // Compile it to scratch space
                     int loc = context.reserveArraySlots(arg.returnCount());
@@ -182,7 +194,7 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
             int counterLocal = context.reserveLocals(1);
             BytecodeUtil.repeatNTimes(visitor, returnCount(args), counterLocal, v -> {
                 // Prepare float[] and output location:
-                v.visitVarInsn(Opcodes.ALOAD, 1);
+                v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex);
                 v.visitVarInsn(Opcodes.ILOAD, counterLocal);
                 BytecodeUtil.constInt(v, outputArrayIndex);
                 v.visitInsn(Opcodes.IADD);
@@ -193,7 +205,7 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
                     int location = locations.get(j);
                     if (arg.isVector()) {
                         // If it's a vector, load the i'th term from its location:
-                        v.visitVarInsn(Opcodes.ALOAD, 1);
+                        v.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex);
                         v.visitVarInsn(Opcodes.ILOAD, counterLocal);
                         BytecodeUtil.constInt(v, location);
                         v.visitInsn(Opcodes.IADD);

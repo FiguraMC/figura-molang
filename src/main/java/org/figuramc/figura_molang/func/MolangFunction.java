@@ -38,6 +38,7 @@ public interface MolangFunction {
         put("cos", FloatFunction.COS);
         put("exp", FloatFunction.EXP);
         put("floor", FloatFunction.FLOOR);
+        put("lerp", FloatFunction.LERP);
         put("ln", FloatFunction.LN);
         put("max", FloatFunction.MAX);
         put("min", FloatFunction.MIN);

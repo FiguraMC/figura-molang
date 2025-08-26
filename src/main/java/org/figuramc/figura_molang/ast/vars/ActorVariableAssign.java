@@ -35,7 +35,7 @@ public class ActorVariableAssign extends MolangExpr {
             int tempArraySpace = context.reserveArraySlots(variable.size);
             rhs.compile(visitor, tempArraySpace, context);
             // Copy from temp space into variable array
-            visitor.visitVarInsn(Opcodes.ALOAD, 1); // [temp]
+            visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp]
             BytecodeUtil.constInt(visitor, tempArraySpace); // [temp, src]
             visitor.visitVarInsn(Opcodes.ALOAD, 0);
             visitor.visitFieldInsn(Opcodes.GETFIELD, Type.getInternalName(CompiledMolang.class), "instance", Type.getDescriptor(MolangInstance.class));

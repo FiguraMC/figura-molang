@@ -21,7 +21,7 @@ public abstract class MolangExpr {
     protected abstract int computeReturnCount();
 
     // Compile this expression to JVM bytecode.
-    // A float[] for temporaries is at local variable 1.
+    // A float[] for temporaries is at local variable <context.arrayVariableIndex>.
     // If this outputs multiple values, write the results to the float[], starting at the given index.
     // If it outputs one value, push it on the stack instead.
     // If we Return a single value, push it on the stack and jump to returnLabel.

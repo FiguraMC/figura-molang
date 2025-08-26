@@ -65,6 +65,8 @@ public class MolangCompileException extends Exception {
     public static final Translatable<TranslatableItems.Items1<String>> EXPECT_DOLLAR_AFTER_VAR_SIZE = Translatable.create("figura_molang.error.compile.expect_dollar_after_var_size", String.class);
     public static final Translatable<TranslatableItems.Items0> EXPECTED_QUERY = Translatable.create("figura_molang.error.compile.expected_query");
     public static final Translatable<TranslatableItems.Items1<String>> UNKNOWN_QUERY = Translatable.create("figura_molang.error.compile.unknown_query", String.class);
+    public static final Translatable<TranslatableItems.Items0> EXPECTED_CONTEXT_VAR = Translatable.create("figura_molang.error.compile.expected_context_var");
+    public static final Translatable<TranslatableItems.Items1<String>> UNKNOWN_CONTEXT_VAR = Translatable.create("figura_molang.error.compile.unknown_context_var", String.class);
     public static final Translatable<TranslatableItems.Items0> EXPECTED_CLOSE_PAREN = Translatable.create("figura_molang.error.compile.expected_close_paren");
     public static final Translatable<TranslatableItems.Items0> EXPECTED_TERNARY_COLON = Translatable.create("figura_molang.error.compile.expected_ternary_colon");
     public static final Translatable<TranslatableItems.Items0> EXPECTED_NAME = Translatable.create("figura_molang.error.compile.expected_name");
