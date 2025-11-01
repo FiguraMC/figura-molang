@@ -3,8 +3,8 @@ package org.figuramc.figura_molang.ast.vars;
 import org.figuramc.figura_molang.CompiledMolang;
 import org.figuramc.figura_molang.MolangInstance;
 import org.figuramc.figura_molang.ast.MolangExpr;
-import org.figuramc.figura_molang.compile.CompilationContext;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.figuramc.memory_tracker.AllocationTracker;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -33,7 +33,7 @@ public class ActorVariable extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
         // Fetch array
         visitor.visitVarInsn(Opcodes.ALOAD, 0);
         visitor.visitFieldInsn(Opcodes.GETFIELD, Type.getInternalName(CompiledMolang.class), "instance", Type.getDescriptor(MolangInstance.class));

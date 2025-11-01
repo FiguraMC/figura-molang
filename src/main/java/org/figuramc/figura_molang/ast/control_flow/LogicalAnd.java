@@ -1,7 +1,7 @@
 package org.figuramc.figura_molang.ast.control_flow;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -23,17 +23,17 @@ public class LogicalAnd extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
         Label zero = new Label();
         Label end = new Label();
         // Compare left against 0
-        left.compile(visitor, outputArrayIndex, context);
+        left.compileToJvmBytecode(visitor, outputArrayIndex, context);
         visitor.visitInsn(Opcodes.FCONST_0);
         visitor.visitInsn(Opcodes.FCMPL);
         // If left == 0, goto zero
         visitor.visitJumpInsn(Opcodes.IFEQ, zero);
         // Otherwise compute right, compare against 0
-        right.compile(visitor, outputArrayIndex, context);
+        right.compileToJvmBytecode(visitor, outputArrayIndex, context);
         visitor.visitInsn(Opcodes.FCONST_0);
         visitor.visitInsn(Opcodes.FCMPL);
         // If right == 0, goto zero

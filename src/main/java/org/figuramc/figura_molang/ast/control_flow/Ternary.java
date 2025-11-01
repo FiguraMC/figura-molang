@@ -1,8 +1,8 @@
 package org.figuramc.figura_molang.ast.control_flow;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
-import org.figuramc.figura_molang.compile.CompilationContext;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -29,14 +29,14 @@ public class Ternary extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
-        condition.compile(visitor, outputArrayIndex, context);
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
+        condition.compileToJvmBytecode(visitor, outputArrayIndex, context);
         visitor.visitInsn(Opcodes.FCONST_0);
         visitor.visitInsn(Opcodes.FCMPL);
         BytecodeUtil.ifElse(
                 visitor, Opcodes.IFEQ,
-                v -> ifTrue.compile(v, outputArrayIndex, context),
-                v -> ifFalse.compile(v, outputArrayIndex, context)
+                v -> ifTrue.compileToJvmBytecode(v, outputArrayIndex, context),
+                v -> ifFalse.compileToJvmBytecode(v, outputArrayIndex, context)
         );
     }
 }

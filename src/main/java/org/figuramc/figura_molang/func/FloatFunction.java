@@ -2,9 +2,9 @@ package org.figuramc.figura_molang.func;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.vars.TempVariable;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -151,14 +151,14 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
     }
 
     @Override
-    public void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, CompilationContext context) {
+    public void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, JvmCompilationContext context) {
         context.push();
         // Check if there are any vector args.
         if (args.stream().noneMatch(MolangExpr::isVector)) {
             // There are no vector args:
             // Compile each arg, pushing it to the stack:
             for (MolangExpr arg : args) {
-                arg.compile(visitor, -1, context);
+                arg.compileToJvmBytecode(visitor, -1, context);
                 // If we need to use doubles, convert each to a double:
                 if (usesDouble) visitor.visitInsn(Opcodes.F2D);
             }
@@ -181,12 +181,12 @@ public record FloatFunction(String name, int argCount, Consumer<MethodVisitor> f
                     int loc = context.reserveArraySlots(arg.returnCount());
                     locations.add(loc);
                     System.gc();
-                    arg.compile(visitor, loc, context); // Compile to loc
+                    arg.compileToJvmBytecode(visitor, loc, context); // Compile to loc
                 } else {
                     // Compile it to push to stack, then store in a local variable
                     int loc = context.reserveLocals(1);
                     locations.add(loc);
-                    arg.compile(visitor, -1, context);
+                    arg.compileToJvmBytecode(visitor, -1, context);
                     visitor.visitVarInsn(Opcodes.FSTORE, loc);
                 }
             }

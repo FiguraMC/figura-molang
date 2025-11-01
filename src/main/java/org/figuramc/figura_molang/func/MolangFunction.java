@@ -1,7 +1,7 @@
 package org.figuramc.figura_molang.func;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
 import org.objectweb.asm.MethodVisitor;
 
@@ -23,7 +23,7 @@ public interface MolangFunction {
     // Compile given these args.
     // If this has multiple outputs, store them at the given arrayIndex in the float[].
     // If this has one output, push it on the stack.
-    void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, CompilationContext context);
+    void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, JvmCompilationContext context);
 
     // All the math functions! :D
     Map<String, MolangFunction> ALL_MATH_FUNCTIONS = new HashMap<>() {{

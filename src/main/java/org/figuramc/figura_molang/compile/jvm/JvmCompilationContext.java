@@ -1,10 +1,13 @@
-package org.figuramc.figura_molang.compile;
+package org.figuramc.figura_molang.compile.jvm;
 
 import org.objectweb.asm.Label;
 
 import java.util.Stack;
 
-public class CompilationContext {
+/**
+ * Context for compiling a Molang expression to JVM bytecode
+ */
+public class JvmCompilationContext {
 
     // Index of the float[] variable used as temp stack space
     public final int arrayVariableIndex;
@@ -17,7 +20,7 @@ public class CompilationContext {
 
     private int maxLocals, maxArraySlots;
 
-    public CompilationContext(int arrayVariableIndex, int firstUnusedLocal, int firstUnusedArraySlot) {
+    public JvmCompilationContext(int arrayVariableIndex, int firstUnusedLocal, int firstUnusedArraySlot) {
         this.arrayVariableIndex = arrayVariableIndex;
         this.nextLocal.push(firstUnusedLocal);
         this.nextArraySlot.push(firstUnusedArraySlot);

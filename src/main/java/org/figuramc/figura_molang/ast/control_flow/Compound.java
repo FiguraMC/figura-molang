@@ -2,8 +2,8 @@ package org.figuramc.figura_molang.ast.control_flow;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.vars.TempVariable;
-import org.figuramc.figura_molang.compile.CompilationContext;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -39,14 +39,14 @@ public class Compound extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
         if (!finalized) throw new IllegalStateException("Attempt to compile Compound before it's finalized!");
         Label newReturnLabel = new Label(); // New return label for exprs inside
         context.push(newReturnLabel, outputArrayIndex); // Push context; the return index is the compound's output index
 
         // Compile each expr
         for (MolangExpr expr : exprs) {
-            expr.compile(visitor, outputArrayIndex, context);
+            expr.compileToJvmBytecode(visitor, outputArrayIndex, context);
             // If the expr returned 1 value, pop it.
             if (!expr.isVector())
                 visitor.visitInsn(Opcodes.POP);

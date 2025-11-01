@@ -3,9 +3,9 @@ package org.figuramc.figura_molang.func;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.vars.TempVariable;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -39,14 +39,14 @@ public record ComparisonOperator(String name, BiConsumer<MethodVisitor, Label> t
     }
 
     @Override
-    public void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, CompilationContext context) {
+    public void compile(MethodVisitor visitor, List<MolangExpr> args, int outputArrayIndex, JvmCompilationContext context) {
         MolangExpr a = args.get(0);
         MolangExpr b = args.get(1);
 
         // Handle the trivial case
         if (!a.isVector() && !b.isVector()) {
-            a.compile(visitor, outputArrayIndex, context);
-            b.compile(visitor, outputArrayIndex, context);
+            a.compileToJvmBytecode(visitor, outputArrayIndex, context);
+            b.compileToJvmBytecode(visitor, outputArrayIndex, context);
             Label fail = new Label();
             Label end = new Label();
             tester.accept(visitor, fail);
@@ -104,17 +104,17 @@ public record ComparisonOperator(String name, BiConsumer<MethodVisitor, Label> t
         context.pop();
     }
 
-    private static int store(MolangExpr expr, MethodVisitor visitor, CompilationContext context) {
+    private static int store(MolangExpr expr, MethodVisitor visitor, JvmCompilationContext context) {
         if (expr instanceof TempVariable temp) {
             return temp.getRealLocation(context);
         } else if (!expr.isVector()) {
             int idx = context.reserveLocals(1);
-            expr.compile(visitor, -1, context);
+            expr.compileToJvmBytecode(visitor, -1, context);
             visitor.visitVarInsn(Opcodes.FSTORE, idx);
             return idx;
         } else {
             int idx = context.reserveArraySlots(expr.returnCount());
-            expr.compile(visitor, idx, context);
+            expr.compileToJvmBytecode(visitor, idx, context);
             return idx;
         }
     }

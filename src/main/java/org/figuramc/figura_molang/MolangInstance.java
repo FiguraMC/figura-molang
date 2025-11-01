@@ -2,11 +2,10 @@ package org.figuramc.figura_molang;
 
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.vars.ActorVariable;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
 import org.figuramc.figura_molang.compile.MolangParser;
-import org.figuramc.figura_molang.func.*;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.figuramc.memory_tracker.AllocationTracker;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
@@ -173,8 +172,8 @@ public class MolangInstance<Actor, OOMErr extends Throwable> {
                 evaluateMethod.visitVarInsn(Opcodes.ALOAD, arrayVariableIndex);
                 BytecodeUtil.constInt(evaluateMethod, 0);
             }
-            CompilationContext ctx = new CompilationContext(arrayVariableIndex, firstUnusedLocal, 0);
-            expr.compile(evaluateMethod, 0, ctx);
+            JvmCompilationContext ctx = new JvmCompilationContext(arrayVariableIndex, firstUnusedLocal, 0);
+            expr.compileToJvmBytecode(evaluateMethod, 0, ctx);
             if (expr.returnCount() == 1) {
                 evaluateMethod.visitInsn(Opcodes.FASTORE);
             }

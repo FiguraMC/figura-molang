@@ -1,6 +1,6 @@
 package org.figuramc.figura_molang.ast;
 
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.objectweb.asm.MethodVisitor;
 
 public abstract class MolangExpr {
@@ -26,6 +26,6 @@ public abstract class MolangExpr {
     // If it outputs one value, push it on the stack instead.
     // If we Return a single value, push it on the stack and jump to returnLabel.
     // If we Return multiple values, put them in the array at returnArrayIndex and jump to returnLabel.
-    public abstract void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context);
+    public abstract void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context);
 
 }

@@ -4,9 +4,9 @@ import org.figuramc.figura_molang.ast.Literal;
 import org.figuramc.figura_molang.ast.MolangExpr;
 import org.figuramc.figura_molang.ast.VectorConstructor;
 import org.figuramc.figura_molang.ast.vars.ContextVariable;
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.compile.MolangCompileException;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -49,9 +49,9 @@ public class QueryFactory<Actor> {
                     return returnCount;
                 }
                 @Override
-                public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+                public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
                     // Call the method.
-                    for (MolangExpr arg : args) arg.compile(visitor, outputArrayIndex, context);
+                    for (MolangExpr arg : args) arg.compileToJvmBytecode(visitor, outputArrayIndex, context);
                     String descriptor = "(" + "F".repeat(paramCount) + ")" + (returnCount == 1 ? "F" : "[F");
                     visitor.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(methodOwnerClass), methodName, descriptor, false);
                     // If it returned 1 float, we're done, otherwise copy from float[] into output
@@ -115,7 +115,7 @@ public class QueryFactory<Actor> {
                     return returnCount;
                 }
                 @Override
-                public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+                public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
                     // Test if actor instanceof actorClass
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitFieldInsn(Opcodes.GETFIELD, Type.getInternalName(CompiledMolang.class), "instance", Type.getDescriptor(MolangInstance.class));
@@ -125,7 +125,7 @@ public class QueryFactory<Actor> {
                     BytecodeUtil.ifElse(visitor, Opcodes.IFEQ, v -> {
                         // If it's an instance, call the method
                         visitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(actorClass));
-                        for (MolangExpr arg : args) arg.compile(v, outputArrayIndex, context);
+                        for (MolangExpr arg : args) arg.compileToJvmBytecode(v, outputArrayIndex, context);
                         if (isStatic) {
                             String descriptor = "(" + Type.getDescriptor(actorClass) + "F".repeat(paramCount) + ")" + (returnCount == 1 ? "F" : "[F");
                             v.visitMethodInsn(Opcodes.INVOKESTATIC, Type.getInternalName(methodOwnerClass), methodName, descriptor, false);

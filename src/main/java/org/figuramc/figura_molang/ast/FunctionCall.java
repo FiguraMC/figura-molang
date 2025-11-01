@@ -1,6 +1,6 @@
 package org.figuramc.figura_molang.ast;
 
-import org.figuramc.figura_molang.compile.CompilationContext;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
 import org.figuramc.figura_molang.func.MolangFunction;
 import org.objectweb.asm.MethodVisitor;
 
@@ -25,7 +25,7 @@ public class FunctionCall extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
         func.compile(visitor, args, outputArrayIndex, context);
     }
 }

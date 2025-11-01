@@ -1,4 +1,4 @@
-package org.figuramc.figura_molang.compile;
+package org.figuramc.figura_molang.compile.jvm;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

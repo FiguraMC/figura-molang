@@ -3,8 +3,8 @@ package org.figuramc.figura_molang.ast.vars;
 import org.figuramc.figura_molang.CompiledMolang;
 import org.figuramc.figura_molang.MolangInstance;
 import org.figuramc.figura_molang.ast.MolangExpr;
-import org.figuramc.figura_molang.compile.CompilationContext;
-import org.figuramc.figura_molang.compile.BytecodeUtil;
+import org.figuramc.figura_molang.compile.jvm.JvmCompilationContext;
+import org.figuramc.figura_molang.compile.jvm.BytecodeUtil;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -28,12 +28,12 @@ public class ActorVariableAssign extends MolangExpr {
     }
 
     @Override
-    public void compile(MethodVisitor visitor, int outputArrayIndex, CompilationContext context) {
+    public void compileToJvmBytecode(MethodVisitor visitor, int outputArrayIndex, JvmCompilationContext context) {
         if (variable.isVector()) {
             // Reserve space and compile rhs to it
             context.push();
             int tempArraySpace = context.reserveArraySlots(variable.size);
-            rhs.compile(visitor, tempArraySpace, context);
+            rhs.compileToJvmBytecode(visitor, tempArraySpace, context);
             // Copy from temp space into variable array
             visitor.visitVarInsn(Opcodes.ALOAD, context.arrayVariableIndex); // [temp]
             BytecodeUtil.constInt(visitor, tempArraySpace); // [temp, src]
@@ -52,7 +52,7 @@ public class ActorVariableAssign extends MolangExpr {
             // Push location
             BytecodeUtil.constInt(visitor, variable.location); // [vars, loc]
             // Push rhs to stack
-            rhs.compile(visitor, outputArrayIndex, context); // [vars, loc, rhs]
+            rhs.compileToJvmBytecode(visitor, outputArrayIndex, context); // [vars, loc, rhs]
             // Store
             visitor.visitInsn(Opcodes.FASTORE); // []
         }
